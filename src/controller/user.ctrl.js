@@ -29,4 +29,32 @@ users.post('/uploadPhoto/insertFolder', async(req,res) => {
     }
 });
 
+/*
+    - 요구사항 
+    2. 유저는 자신의 특정 폴더에 업로드된 사진을 저장할 수 있다. 
+        1) 사진은 어딘가의 이미지 서버에 저장이 되고 이에 대한 url이 저장된다고 가정한다.
+        2) n개의 사진을 동시에 저장할 수 있다. 
+*/
+users.post('/uploadPhoto/insertFile', async(req,res) => {
+    let schema = Joi.object({
+        user_id : Joi.number().required(),
+        folder_id : Joi.number().required(),
+        url : Joi.array().items(
+            Joi.string().max(1023)
+        ).required()
+    });
+
+    let {error, value} = schema.validate(req.body);
+    
+    if(error) return res.status(400).send(resResult(400,false,"파라미터의 유효성을 확인해주세요.",error.message));
+
+    try{
+        let result = await User.insertFile(value);
+        return res.status(result.code).send(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
+    }
+});
+
 module.exports = users;
