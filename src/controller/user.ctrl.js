@@ -107,5 +107,19 @@ users.post('/uploadPhoto/selectFile', async(req,res) => {
     }
 });
 
+/*
+    - 요구사항 
+    2-2. 통계를 위해 전체 ㅏ진에서 가장 많이 달린 태그에 대한 top 10을 추출할 수 있어야 한다.
+*/
+users.post('/uploadPhoto/selectFileTag', async(req,res) => {
+    try{
+        let result = await User.selectFileTag();
+        return res.status(result.code).send(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
+    }
+});
+
 
 module.exports = users;

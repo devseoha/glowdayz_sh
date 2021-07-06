@@ -131,3 +131,25 @@ exports.selectFile = async({user_id, folder_id}) => {
         return resResult(false,400,"요청 결과 반환",err);
     }
 };
+
+exports.selectFileTag = async() => {
+    let result;
+    try{
+        result = await db.sequelize.query(
+            `SELECT
+                ft.name, count(*) as cnt
+             FROM photo_file_tag ft
+             GROUP BY ft.name
+             ORDER BY cnt DESC
+             LIMIT 10
+            `           
+            ,
+            { replacements: {}, type: Sequelize.QueryTypes.SELECT }
+        );
+
+        return resResult(true,200,"요청 결과 반환",result);
+    } catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
