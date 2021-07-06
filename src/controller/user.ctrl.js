@@ -61,9 +61,32 @@ users.post('/uploadPhoto/insertFile', async(req,res) => {
     - 요구사항 
     3. 유저는 자신의 폴더를 생성된 순서대로 조회할 수 있으며, 이때에 각 폴더에 저장된 이미지 갯수를 알 수 있다. 
 */
-users.post('/uploadPhoto/selectFile', async(req,res) => {
+users.post('/uploadPhoto/selectFolder', async(req,res) => {
     let schema = Joi.object({
         user_id : Joi.number().required()
+    });
+
+    let {error, value} = schema.validate(req.body);
+    
+    if(error) return res.status(400).send(resResult(400,false,"파라미터의 유효성을 확인해주세요.",error.message));
+
+    try{
+        let result = await User.selectFolder(value);
+        return res.status(result.code).send(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
+    }
+});
+
+/*
+    - 요구사항 
+    4. 유저는 특정 폴더에서 최근 저장한 순서대로 사진을 조회할 수 있다.
+*/
+users.post('/uploadPhoto/selectFile', async(req,res) => {
+    let schema = Joi.object({
+        user_id : Joi.number().required(),
+        folder_id : Joi.number().required()
     });
 
     let {error, value} = schema.validate(req.body);
@@ -78,5 +101,6 @@ users.post('/uploadPhoto/selectFile', async(req,res) => {
         return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
     }
 });
+
 
 module.exports = users;
