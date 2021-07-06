@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "admin",
+    "password": "glowdayz",
+    "database": "glowdayz",
+    "host": "database-2.ckumibrqgmgz.ap-northeast-2.rds.amazonaws.com",
+    "dialect": "mysql",
+    "timezone" : "+09:00"
+  }
+}
