@@ -67,3 +67,32 @@ exports.insertFile = async({user_id, folder_id, url}) => {
         return resResult(false,400,"요청 결과 반환",err);
     }
 };
+
+exports.selectFile = async({user_id}) => {
+    let result;
+    try{
+        if(!await findUser(user_id)) return resResult(false,400,"요청 결과 반환","유저 아이디를 확인해주세요.");
+        
+        result = await db.sequelize.query(
+            `SELECT 
+                pfi.folder_id, pfo.name, count(*) as cnt
+             FROM user
+             JOIN photo_folder pfo
+             ON user.id = pfo.user_id
+             JOIN photo_file pfi
+             ON pfo.id = pfi.folder_id
+             WHERE 1=1
+             AND user.id = :user_id
+             GROUP BY pfi.folder_id
+             ORDER BY pfo.created_at ASC 
+            `           
+            ,
+            { replacements: { user_id:user_id}, type: Sequelize.QueryTypes.SELECT }
+        );
+
+        return resResult(true,200,"요청 결과 반환",result);
+    } catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
