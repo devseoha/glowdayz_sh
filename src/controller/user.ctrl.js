@@ -8,6 +8,8 @@ const Joi = require('joi');
     1-1. 유저는 자신만의 폴더를 생성 할 수 있다.
         1) 생성시 폴더에 대한 이름을 정할 수 있다.
         2) 폴더의 생성 수는 제한이 없다.
+    3-1. 유저는 포인트를 갖게된다.
+    3-2. 폴더 생성 시 마다 해당 유저는 1,000 포인트를 획득한다.
 */
 users.post('/uploadPhoto/insertFolder', async(req,res) => {
     let schema = Joi.object({

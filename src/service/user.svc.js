@@ -22,6 +22,50 @@ const checkUserFolder = async(user_id,folder_id)=>{
     return result;
 };
 
+const savePoint = async(user_id,folder_id)=>{
+    let obj = resResult;
+    try{
+        await db.sequelize.query(
+            `UPDATE user
+            SET point = user.point + 1000 , updated_at = now() 
+            WHERE 1=1
+            AND id = :user_id
+            `           
+            ,
+            { replacements: { user_id:user_id}, type: Sequelize.QueryTypes.UPDATE }
+        ).then(async(data)=>{
+            if(data){
+                try{
+                    await db.point_history.create({
+                        user_id : user_id,
+                        folder_id : folder_id,
+                        increase : 1000
+                    }).then(async(data2)=>{
+                        obj = resResult(true,200,"요청 결과 반환",data2);
+                    })
+                }catch(err){
+                    await db.sequelize.query(
+                        `UPDATE user
+                        SET point = user.point - 1000 , updated_at = now() 
+                        WHERE 1=1
+                        AND id = :user_id
+                        `           
+                        ,
+                        { replacements: { user_id:user_id}, type: Sequelize.QueryTypes.UPDATE }
+                    )
+                    obj = resResult(false,400,"요청 결과 반환","포인트 히스토리 오류");
+                    
+                }
+            };
+        });
+        
+        return obj;
+    }catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
+
 exports.insertFolder = async({user_id, folder_name}) => {
     let result;
 
@@ -34,6 +78,10 @@ exports.insertFolder = async({user_id, folder_name}) => {
         }).then(async(data)=>{
             result = data.dataValues;
         });
+        
+        let check_point = await savePoint(user_id, result.id);
+
+        if(!check_point.status) return resResult(false,400,"요청 결과 반환","포인트적립에서 에러 발생.");
         
         return resResult(true,200,"요청 결과 반환",result);
     } catch (err) {
