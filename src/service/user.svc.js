@@ -42,24 +42,28 @@ exports.insertFolder = async({user_id, folder_name}) => {
     }
 };
 
-exports.insertFile = async({user_id, folder_id, url}) => {
+exports.insertFile = async({user_id, folder_id, list}) => {
     let result;
     try{
         if(!await findUser(user_id)) return resResult(false,400,"요청 결과 반환","유저 아이디를 확인해주세요.");
         
         if(!await checkUserFolder(user_id, folder_id)) return resResult(false,400,"요청 결과 반환","유저/폴더 아이디를 확인해주세요.");
 
-        let obj = new Object();
-        let list = url.map((data)=>{
-            obj = {};
-            obj.folder_id = folder_id;
-            obj.url = data;
-            return obj;
-        });
-
-        await db.photo_file.bulkCreate(list).then((data)=>{
-            result = data;
-        });
+        for(let i=0; i<list.length;i++){
+            await db.photo_file.create({
+                user_id : user_id,
+                folder_id : folder_id,
+                url:list[i].url
+            }).then(async(data)=>{
+                let file_id = data.dataValues.id;
+                for(let j=0; j<list[i].tags.length;j++){
+                    await db.photo_file_tag.create({
+                        file_id : file_id,
+                        name : list[i].tags[j]
+                    });
+                };
+            });
+        };
 
         return resResult(true,200,"요청 결과 반환",result);
     } catch (err) {
