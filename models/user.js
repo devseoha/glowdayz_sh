@@ -2,6 +2,7 @@ module.exports = function(sequelize, DataTypes){
     var user = sequelize.define("user",{
         id : { field: 'id', type: DataTypes.INTEGER(11), primaryKey: true, autoIncrement: true},
         name: { field: 'name', type: DataTypes.STRING(255)},
+        point: { field: 'point', type: DataTypes.INTEGER(11)},
         created_at: { field: 'created_at', type: DataTypes.DATE()},
         updated_at: { field: 'updated_at', type: DataTypes.DATE()},
     }, {

@@ -66,6 +66,63 @@ const savePoint = async(user_id,folder_id)=>{
     }
 };
 
+const checkPoint = async(user_id)=>{
+    try{
+        let point = await db.user.findOne({where:{id:user_id}});
+       
+        if(point.dataValues.point < 100) return resResult(false,400,"요청 결과 반환", "포인트부족");
+        
+        return resResult(true,200,"요청 결과 반환","저장 가능");
+    }catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
+
+const usePoint = async(user_id,file_id)=>{
+    let obj = resResult;
+    try{
+        await db.sequelize.query(
+            `UPDATE user
+            SET point = user.point - 100 , updated_at = now() 
+            WHERE 1=1
+            AND id = :user_id
+            `           
+            ,
+            { replacements: { user_id:user_id}, type: Sequelize.QueryTypes.UPDATE }
+        ).then(async(data)=>{
+            if(data){
+                try{
+                    await db.point_history.create({
+                        user_id : user_id,
+                        file_id : file_id,
+                        decrease : 100
+                    }).then(async(data2)=>{
+                        obj = resResult(true,200,"요청 결과 반환",data2);
+                    })
+                }catch(err){
+                    await db.sequelize.query(
+                        `UPDATE user
+                        SET point = user.point + 100 , updated_at = now() 
+                        WHERE 1=1
+                        AND id = :user_id
+                        `           
+                        ,
+                        { replacements: { user_id:user_id}, type: Sequelize.QueryTypes.UPDATE }
+                    )
+                    obj = resResult(false,400,"요청 결과 반환","포인트 히스토리 오류");
+                    
+                }
+            };
+        });
+        
+        return obj;
+    }catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
+
 exports.insertFolder = async({user_id, folder_name}) => {
     let result;
 
@@ -98,6 +155,10 @@ exports.insertFile = async({user_id, folder_id, list}) => {
         if(!await checkUserFolder(user_id, folder_id)) return resResult(false,400,"요청 결과 반환","유저/폴더 아이디를 확인해주세요.");
 
         for(let i=0; i<list.length;i++){
+            let check_point = await checkPoint(user_id);
+            
+            if(!check_point.status)return resResult(false,400,"요청 결과 반환",`${i+1}번째 사진을 포인트부족으로 업로드 하지못했습니다.`);
+
             await db.photo_file.create({
                 user_id : user_id,
                 folder_id : folder_id,
@@ -110,10 +171,11 @@ exports.insertFile = async({user_id, folder_id, list}) => {
                         name : list[i].tags[j]
                     });
                 };
+                await usePoint(user_id, file_id);
             });
         };
 
-        return resResult(true,200,"요청 결과 반환",result);
+        return resResult(true,200,"요청 결과 반환","포인트 소모, 사진 파일 올리기 성공");
     } catch (err) {
         console.log(err);
         return resResult(false,400,"요청 결과 반환",err);

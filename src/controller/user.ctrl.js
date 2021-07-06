@@ -36,6 +36,8 @@ users.post('/uploadPhoto/insertFolder', async(req,res) => {
         1) 사진은 어딘가의 이미지 서버에 저장이 되고 이에 대한 url이 저장된다고 가정한다.
         2) n개의 사진을 동시에 저장할 수 있다. 
     2-1. 사진 저장 시 n개의 문자 태그를 추가로 전달받아 저장해야 한다.
+    3-3. 사진 업로드 시 해당 유저는 사진 1개당 100 포인트를 소모한다.
+    3-4. 포인트가 모자란 경우 사진을 업로드 할 수 없다.
 */
 users.post('/uploadPhoto/insertFile', async(req,res) => {
     let schema = Joi.object({
