@@ -124,6 +124,37 @@ users.post('/uploadPhoto/selectFileTag', async(req,res) => {
         return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
     }
 });
+/*
+    - 요구사항 
+    4-1. 포인트에 대한 선입선출
+        1) 유저가 폴더를 2개 생성하여 2,000포인트를 획득한다.
+        2) 유저가 1개의 사진을 폴더 2에 저장하여 100포인트를 소모한다(사진이 저장되는 폴더와 선입/선출은 관계가 없다.)
+        3) 이때, 폴더 1은 생성으로 인한 포인트 획득량 1000 초인트에서, 100 포인트가 소모됐음을 알 수 있어야 한다.
+        4) 폴더2는 생성으로 인한 포인트 획득량 1000포인트에서 포인트 소모가 없었음을 알 수 있어야 한다.
+        5) 사진을 추가로 10장을 저장하면, 다음과 같은 상태가 됨을 알 수 있어야 한다.
+         * 폴더 1  
+            - 포인트획득 : 1000
+            - 포인트소모 : 1000
+           폴더 2
+            - 포인트획득 : 1000
+            - 포인트소모 : 100
+*/
+users.post('/point/selectPointHistory', async(req,res) => {
+    let schema = Joi.object({
+        user_id : Joi.number().required()
+    });
 
+    let {error, value} = schema.validate(req.body);
+    
+    if(error) return res.status(400).send(resResult(400,false,"파라미터의 유효성을 확인해주세요.",error.message));
+
+    try{
+        let result = await User.selectPointHistory(value);
+        return res.status(result.code).send(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
+    }
+});
 
 module.exports = users;
