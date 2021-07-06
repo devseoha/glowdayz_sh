@@ -319,3 +319,46 @@ exports.selectPointHistory = async({user_id}) => {
         return resResult(false,400,"요청 결과 반환",err);
     }
 };
+
+exports.selectEmptyPointHistory = async({user_id}) => {
+    try{
+        let result = await db.sequelize.query(
+            `SELECT 
+                ph.folder_id, pfo.name, ph.increase, decrease.sum
+             FROM user
+             JOIN point_history ph
+             ON user.id = ph.user_id
+             JOIN photo_folder pfo
+             ON ph.folder_id = pfo.id 
+             JOIN (SELECT sum(ph.decrease) as sum
+                    FROM user
+                    JOIN point_history ph
+                    ON user.id = ph.user_id
+                    WHERE 1=1
+                    AND user.id = 1
+                    AND ph.file_id is not NULL) decrease
+             WHERE 1=1
+             AND user.id = :user_id
+             AND ph.folder_id IS NOT NULL
+             GROUP BY ph.folder_id
+             ORDER BY ph.folder_id ASC
+            `           
+            ,
+            { replacements: {user_id:user_id}, type: Sequelize.QueryTypes.SELECT }
+        );
+
+        let arr = new Array();
+        let obj = new Object();
+        for(let i=Math.ceil(result[0].sum/1000); i<result.length;i++){
+            obj={};
+            obj.folder_id = result[i].folder_id;
+            obj.name = result[i].name;
+            arr.push(obj);
+        };
+
+        return resResult(true,200,"요청 결과 반환",arr);
+    } catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};

@@ -124,6 +124,7 @@ users.post('/uploadPhoto/selectFileTag', async(req,res) => {
         return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
     }
 });
+
 /*
     - 요구사항 
     4-1. 포인트에 대한 선입선출
@@ -150,6 +151,28 @@ users.post('/point/selectPointHistory', async(req,res) => {
 
     try{
         let result = await User.selectPointHistory(value);
+        return res.status(result.code).send(result);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send(resResult(false,500,"서버와 통신이 불가능합니다.",err));
+    }
+});
+
+/*
+    - 요구사항 
+    4-2. 통계를 위해 전체 폴더 중 획득한 포인트에서 소모가 없는 폴더 목록을 추출한다.
+*/
+users.post('/point/selectEmptyPointHistory', async(req,res) => {
+    let schema = Joi.object({
+        user_id : Joi.number().required()
+    });
+
+    let {error, value} = schema.validate(req.body);
+    
+    if(error) return res.status(400).send(resResult(400,false,"파라미터의 유효성을 확인해주세요.",error.message));
+
+    try{
+        let result = await User.selectEmptyPointHistory(value);
         return res.status(result.code).send(result);
     } catch (err) {
         console.log(err);
