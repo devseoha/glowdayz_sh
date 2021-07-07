@@ -123,6 +123,17 @@ const usePoint = async(user_id,file_id)=>{
     }
 };
 
+exports.insertUser = async({name}) => {
+    try{
+        let result = await db.user.create({name:name});
+
+        return resResult(true,200,"요청 결과 반환",result);
+    } catch (err) {
+        console.log(err);
+        return resResult(false,400,"요청 결과 반환",err);
+    }
+};
+
 exports.insertFolder = async({user_id, folder_name}) => {
     let result;
 
